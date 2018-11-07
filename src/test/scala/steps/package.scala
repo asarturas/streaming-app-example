@@ -10,7 +10,7 @@ package object steps {
 
   implicit val blockingContextService: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
 
-  case class SharedState(stream: MessageStream[IO], maybeEvaluatedStream: Option[Vector[Message]] = None)
+  case class SharedState(stream: MessageStream, maybeEvaluatedStream: Option[Vector[Message]] = None)
 
   var sharedState: SharedState = _
 

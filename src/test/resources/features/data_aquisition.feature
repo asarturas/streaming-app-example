@@ -15,7 +15,7 @@ Feature: data acquisition
     When I create a message stream from source file "empty.data"
     Then I should get an empty message stream
 
-  Scenario: acquisition of file with all valid visit creation messages
+  Scenario: acquisition of file with all valid messages
 
     Given there is source file "visit-creation-messages.data":
       """

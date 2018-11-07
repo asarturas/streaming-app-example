@@ -4,22 +4,23 @@ import java.nio.file.Path
 import io.circe.fs2._
 import io.circe.generic.auto._
 import io.circe.syntax._
-import cats.effect.{ContextShift, IO, Sync}
+import cats.effect.IO
 import fs2.{io, text, Stream}
+import cats.implicits._
+import cats.effect.ContextShift
 
 import scala.concurrent.ExecutionContextExecutorService
 
 object MessageStream {
 
-  type MessageStream[F[_]] = Stream[F, Message]
+  type MessageStream = Stream[IO, Message]
 
-//  def fromFile[F[_]: Sync: ContextShift](filePath: Path)(implicit blockingExecutionContext: ExecutionContextExecutorService): MessageStream[IO] =
-  def fromFile[F[_]](filePath: Path)(implicit blockingExecutionContext: ExecutionContextExecutorService): MessageStream[IO] =
-    Stream.empty
-//    io.file.readAll(filePath, blockingExecutionContext, 4096)
-//      .through(text.utf8Decode)
-//      .through(text.lines)
-//      .through(stringStreamParser)
-//      .map(_.)
-//      .through(decoder[IO, Message])
+  implicit val ioContextShift: ContextShift[IO] = IO.contextShift(scala.concurrent.ExecutionContext.Implicits.global)
+
+  def fromFile(filePath: Path)(implicit ec: ExecutionContextExecutorService): Stream[IO, Message] =
+    io.file.readAll[IO](filePath, ec, 4096)
+      .through(text.utf8Decode)
+      .through(text.lines)
+      .through(stringStreamParser[IO])
+      .through(decoder[IO, Message])
 }
