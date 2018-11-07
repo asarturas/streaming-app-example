@@ -1,13 +1,11 @@
-package com.spikerlabs.streamingapp.domain
+package com.spikerlabs.streamingapp.acquisition
 
 import java.nio.file.Path
-import io.circe.fs2._
-import io.circe.generic.auto._
-import io.circe.syntax._
-import cats.effect.IO
+
+import _root_.io.circe.fs2.{decoder, stringStreamParser}
+import cats.effect.{ContextShift, IO}
+import com.spikerlabs.streamingapp.domain.Message
 import fs2.{io, text, Stream}
-import cats.implicits._
-import cats.effect.ContextShift
 
 import scala.concurrent.ExecutionContextExecutorService
 
@@ -17,7 +15,7 @@ object MessageStream {
 
   implicit val ioContextShift: ContextShift[IO] = IO.contextShift(scala.concurrent.ExecutionContext.Implicits.global)
 
-  def fromFile(filePath: Path)(implicit ec: ExecutionContextExecutorService): Stream[IO, Message] =
+  def fromFile(filePath: Path)(implicit ec: ExecutionContextExecutorService): MessageStream =
     io.file.readAll[IO](filePath, ec, 4096)
       .through(text.utf8Decode)
       .through(text.lines)

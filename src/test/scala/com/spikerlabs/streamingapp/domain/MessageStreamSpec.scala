@@ -5,7 +5,8 @@ import java.time.ZonedDateTime
 import java.util.concurrent.Executors
 import java.util.UUID
 
-import com.spikerlabs.streamingapp.domain.Message.{VisitCreate, VisitUpdate}
+import com.spikerlabs.streamingapp.acquisition.MessageStream
+import com.spikerlabs.streamingapp.domain.message.{VisitCreate, VisitUpdate}
 import org.scalatest.{AppendedClues, FlatSpec, Matchers}
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}

@@ -13,7 +13,7 @@ Feature: data acquisition
       """
       """
     When I create a message stream from source file "empty.data"
-    Then I should get an empty message stream
+    Then there should be an empty message stream
 
   Scenario: acquisition of file with all valid messages
 
@@ -23,5 +23,5 @@ Feature: data acquisition
       {"messageType": "VisitCreate","visit": {"id": "c63bd06d-dec0-465f-bba5-a2b61f438275","userId": "20879fe7-a946-4ca1-b0f6-f8f10e753fba","documentId": "a8e5010b-aa0a-44c3-b8b2-6865ca0bac90","createdAt": "2015-02-02T22:33:44.000Z"}}
       """
     When I create a message stream from source file "visit-creation-messages.data"
-    Then I should get a stream with 2 messages
-    And all the messages should of type "VisitCreate"
+    Then there should be a stream with 2 messages
+    And all the messages in stream should be of type "VisitCreate"

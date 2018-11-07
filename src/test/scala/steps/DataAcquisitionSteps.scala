@@ -2,7 +2,8 @@ package steps
 
 import java.nio.file.{Files, Path, Paths}
 
-import com.spikerlabs.streamingapp.domain.{Message, MessageStream}
+import com.spikerlabs.streamingapp.acquisition.MessageStream
+import com.spikerlabs.streamingapp.domain.Message
 import cucumber.api.scala.{EN, ScalaDsl}
 import cucumber.api.PendingException
 import fs2.Stream
@@ -25,17 +26,17 @@ class DataAcquisitionSteps extends ScalaDsl with EN with Matchers with AppendedC
     sharedState = sharedState.copy(stream = MessageStream.fromFile(filePath(fileName)))
   }
 
-  Then("""^I should get an empty message stream$""") { () =>
+  Then("""^there should be an empty message stream$""") { () =>
     unsafeEvaluateStream()
     sharedState.maybeEvaluatedStream.get shouldBe empty
   }
 
-  Then("""^I should get a stream with (\d+) messages$""") { expectedStreamSize: Int =>
+  Then("""^there should be a stream with (\d+) messages$""") { expectedStreamSize: Int =>
     unsafeEvaluateStream()
     sharedState.maybeEvaluatedStream.get should have size expectedStreamSize
   }
 
-  Then("""^all the messages should of type "([^"]*)"$""") { expectedMessageType: String =>
+  Then("""^all the messages in stream should be of type "([^"]*)"$""") { expectedMessageType: String =>
     unsafeEvaluateStream()
     sharedState.maybeEvaluatedStream.get.foreach { message =>
       expectedMessageType match {
@@ -43,6 +44,11 @@ class DataAcquisitionSteps extends ScalaDsl with EN with Matchers with AppendedC
         case other => fail(s"unsupported message type: $other")
       }
     }
+  }
+
+  Given("""^there is a message stream from file "([^"]*)":$""") { (fileName: String, fileContents: String) =>
+    Files.write(filePath(fileName), fileContents.getBytes)
+    sharedState = sharedState.copy(stream = MessageStream.fromFile(filePath(fileName)))
   }
 
 }
