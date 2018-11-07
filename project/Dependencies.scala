@@ -11,7 +11,8 @@ object Dependencies {
     "io.circe" %% "circe-core",
     "io.circe" %% "circe-generic",
     "io.circe" %% "circe-parser",
-    "io.circe" %% "circe-fs2"
+    "io.circe" %% "circe-fs2",
+    "io.circe" %% "circe-java8"
   ).map(_ % "0.10.0")
 
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5" % Test

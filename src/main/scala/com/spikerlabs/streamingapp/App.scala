@@ -37,7 +37,7 @@ object App extends IOApp {
       OutSomething(c = (f.far - 32.0) * (5.0 / 9.0), f = f.far)
 
   def run(args: List[String]): IO[ExitCode] = {
-    blockingResource.use { blockingExecutionContext =>
+    blockingResource.use { blockingExecutionContext: ExecutionContextExecutorService =>
       io.file.readAll[IO](Paths.get("testdata/fahrenheit.txt"), blockingExecutionContext, 4096)
         .through(text.utf8Decode)
         .through(text.lines)

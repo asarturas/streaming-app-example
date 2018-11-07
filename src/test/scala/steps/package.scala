@@ -1,8 +1,24 @@
+import java.util.concurrent.Executors
+
 import cats.effect.IO
+import com.spikerlabs.streamingapp.domain.Message
 import com.spikerlabs.streamingapp.domain.MessageStream.MessageStream
-import fs2.Stream
+
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 
 package object steps {
-  case class SharedState(stream: MessageStream[IO])
-  var sharedState = SharedState(Stream.empty)
+
+  implicit val blockingContextService: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
+
+  case class SharedState(stream: MessageStream[IO], maybeEvaluatedStream: Option[Vector[Message]] = None)
+
+  var sharedState: SharedState = _
+
+  def unsafeEvaluateStream(): Unit = {
+    if (sharedState.maybeEvaluatedStream.isEmpty) {
+      val evaluatedStream = sharedState.stream.compile.toVector.unsafeRunSync()
+      sharedState = sharedState.copy(maybeEvaluatedStream = Some(evaluatedStream))
+    }
+  }
+
 }
