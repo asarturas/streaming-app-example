@@ -24,4 +24,13 @@ object Message {
       }
   }
 
+  implicit val messageOrdering: Ordering[Message] = Ordering.fromLessThan[Message] { (one, another) =>
+    date(one).isBefore(date(another))
+  }
+
+  def date(msg: Message): ZonedDateTime = msg match {
+    case msg: VisitCreate => msg.createdAt
+    case msg: VisitUpdate => msg.updatedAt
+  }
+
 }
