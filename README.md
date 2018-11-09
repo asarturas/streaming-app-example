@@ -67,6 +67,6 @@ It is very basic and not optimal, so it takes ages to process data.
 - If visit spans two hours (starts at 11:50, ends at 12:20), then it will be considered only towards the first hour from 11:00 to 12:00, but the stats will include the later hour from 12:00 to 13:00;
 - Single incorrect message would kill the stream;
 - Analytics calculation is not parallel;
-- A lot of operations on dates might be contributing to slowness;
-- There are a lot of transformations between Vectors and SortedSets in stream pipes;
-- Generally - only success path is considered in most places;
+- A lot of operations on dates might be contributing to slowness too;
+- A lot of transformations between Vectors and SortedSets in stream pipes;
+- In most of the cases only success path is considered in most places;
