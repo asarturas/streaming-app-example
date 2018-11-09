@@ -8,7 +8,7 @@ import cucumber.api.PendingException
 import fs2.Stream
 import fs2.text._
 import org.scalatest.{AppendedClues, Matchers}
-import com.spikerlabs.streamingapp.analysis.DocumentVisitAnalytics._
+import com.spikerlabs.streamingapp.analysis.VisitAnalytics._
 
 class DataAnalysisSteps extends ScalaDsl with EN with Matchers with AppendedClues {
 

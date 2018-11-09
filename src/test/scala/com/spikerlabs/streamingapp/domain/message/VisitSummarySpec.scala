@@ -46,7 +46,7 @@ class VisitSummarySpec extends FlatSpec with Matchers with AppendedClues {
       id = UUID.fromString("82abce83-3892-48ee-9f1b-d34c4746ace7"),
       engagedTime = 25,
       completion = 0.4,
-      updatedAt = ZonedDateTime.parse("2015-04-22T12:40:35.122Z")
+      updatedAt = ZonedDateTime.parse("2015-04-22T11:50:35.122Z")
     )
 
     VisitSummary(create, update) shouldBe VisitSummary(
@@ -54,8 +54,8 @@ class VisitSummarySpec extends FlatSpec with Matchers with AppendedClues {
       create.userId,
       create.documentId,
       TimePeriod(
-        startTime = ZonedDateTime.parse("2015-04-22T12:00:00.000Z"),
-        endTime = ZonedDateTime.parse("2015-04-22T13:00:00.000Z")
+        startTime = ZonedDateTime.parse("2015-04-22T11:00:00.000Z"),
+        endTime = ZonedDateTime.parse("2015-04-22T12:00:00.000Z")
       ),
       time = update.engagedTime,
       isCompleted = false
@@ -76,7 +76,7 @@ class VisitSummarySpec extends FlatSpec with Matchers with AppendedClues {
       id = UUID.fromString("82abce83-3892-48ee-9f1b-d34c4746ace7"),
       engagedTime = 25,
       completion = 0.9999,
-      updatedAt = ZonedDateTime.parse("2015-04-22T12:40:35.122Z")
+      updatedAt = ZonedDateTime.parse("2015-04-22T11:50:35.122Z")
     )
 
     VisitSummary(create, update) shouldBe VisitSummary(
@@ -84,8 +84,8 @@ class VisitSummarySpec extends FlatSpec with Matchers with AppendedClues {
       create.userId,
       create.documentId,
       TimePeriod(
-        startTime = ZonedDateTime.parse("2015-04-22T12:00:00.000Z"),
-        endTime = ZonedDateTime.parse("2015-04-22T13:00:00.000Z")
+        startTime = ZonedDateTime.parse("2015-04-22T11:00:00.000Z"),
+        endTime = ZonedDateTime.parse("2015-04-22T12:00:00.000Z")
       ),
       time = update.engagedTime,
       isCompleted = true
