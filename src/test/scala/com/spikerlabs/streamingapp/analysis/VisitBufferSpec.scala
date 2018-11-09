@@ -58,32 +58,21 @@ class VisitBufferSpec extends FlatSpec with Matchers with AppendedClues {
     buffer.end() shouldBe Vector()
   }
 
-  it should "flush complete visits" in {
-    val buffer = new VisitBuffer(initialVisits).add(
-      Vector(VisitUpdate(first, 1, 1, earlierDate))
-    )
-
-    buffer.flush() shouldBe Vector(
-      VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 1, 1, earlierDate)),
-    )
-    buffer.end() shouldBe Vector(
-      VisitSummary(VisitCreate(second, second, second, earlierDate)),
-    )
-  }
-
   it should "flush visits which are 1 hour old or older" in {
     val buffer = new VisitBuffer(initialVisits).add(
       Vector(
-        VisitUpdate(first, 1, 1, earlierDate),
-        VisitUpdate(second, 3600, 0.1, earliestDate.plusHours(1))
+        VisitUpdate(first, 1, 0.2, earlierDate),
+        VisitUpdate(second, 3600, 0.1, earliestDate.plusHours(1)),
+        VisitCreate(third, third, third, earliestDate.plusHours(2))
       )
     )
 
     buffer.flush() shouldBe Vector(
-      VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 1, 1, earlierDate)),
+      VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 1, 0.2, earlierDate)),
+      VisitSummary(VisitCreate(second, second, second, laterDate), VisitUpdate(second, 3600, 0.1, earliestDate.plusHours(1))),
     )
     buffer.end() shouldBe Vector(
-      VisitSummary(VisitCreate(second, second, second, laterDate), VisitUpdate(second, 3600, 0.1, earliestDate.plusHours(1))),
+      VisitSummary(VisitCreate(third, third, third, earliestDate.plusHours(2))),
     )
   }
 

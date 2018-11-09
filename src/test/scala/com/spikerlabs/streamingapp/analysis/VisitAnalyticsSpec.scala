@@ -92,8 +92,8 @@ class VisitAnalyticsSpec extends FlatSpec with Matchers with AppendedClues {
 
     stream.through(VisitAnalytics.toVisitSummaries).toList should contain theSameElementsInOrderAs
       List(
-        VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 2, 1.0, latestDate)),
         VisitSummary(VisitCreate(second, second, second, earliestDate), VisitUpdate(second, 2, 0.5, laterDate)),
+        VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 2, 1.0, latestDate)),
         VisitSummary(VisitCreate(third, first, first, latestDate.plusHours(1))),
         VisitSummary(VisitCreate(fourth, first, first, latestDate.plusHours(3)))
       )

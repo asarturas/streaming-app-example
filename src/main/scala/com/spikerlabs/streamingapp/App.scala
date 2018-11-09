@@ -5,6 +5,9 @@ import java.util.concurrent.Executors
 
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.implicits._
+import com.spikerlabs.streamingapp.acquisition.MessageStream
+import com.spikerlabs.streamingapp.analysis.VisitAnalytics
+import com.spikerlabs.streamingapp.domain.message.DocumentVisitAnalytics
 import io.circe.fs2._
 import io.circe.generic.semiauto._
 import io.circe.syntax._
@@ -33,22 +36,11 @@ object App extends IOApp {
         es => IO(es.shutdown()) // tear down
       )
 
-  def fahrenheitToCelsius(f: DataPoint): OutSomething =
-      OutSomething(c = (f.far - 32.0) * (5.0 / 9.0), f = f.far)
-
   def run(args: List[String]): IO[ExitCode] = {
     blockingResource.use { blockingExecutionContext: ExecutionContextExecutorService =>
-      io.file.readAll[IO](Paths.get("testdata/fahrenheit.txt"), blockingExecutionContext, 4096)
-        .through(text.utf8Decode)
-        .through(text.lines)
-        .filter(s => !s.trim.isEmpty && !s.startsWith("//"))
-        .through(stringStreamParser)
-        .through(decoder[IO, DataPoint])
-        .map(fahrenheitToCelsius)
-        .map(_.asJson.noSpaces)
-        .intersperse("\n")
-        .through(text.utf8Encode)
-        .through(io.file.writeAll(Paths.get("testdata/celsius.txt"), blockingExecutionContext))
+      MessageStream.fromFile(Paths.get("testdata/test-visit-messages.log"))(blockingExecutionContext)
+        .through(VisitAnalytics.aggregateVisits)
+        .through(_.evalMap{ documentAnalytics => IO { println(documentAnalytics); documentAnalytics }} )
         .compile.drain
         .as(ExitCode.Success)
     }

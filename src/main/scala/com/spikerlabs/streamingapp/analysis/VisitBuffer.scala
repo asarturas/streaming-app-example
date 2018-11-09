@@ -1,5 +1,7 @@
 package com.spikerlabs.streamingapp.analysis
 
+import java.time.ZonedDateTime
+
 import com.spikerlabs.streamingapp.domain.Message
 import com.spikerlabs.streamingapp.domain.message.{VisitCreate, VisitInProgress, VisitSummary, VisitUpdate}
 
@@ -25,13 +27,17 @@ class VisitBuffer(private var initialVisits: Vector[Message] = Vector.empty[Mess
   }
 
   def flush(): Vector[VisitSummary] = {
-    val (bufferToFlush, bufferToKeep) = buffer.partition(isComplete)
-    buffer = bufferToKeep
-    bufferToFlush.map(toSummary)
+    buffer.lastOption.map { last =>
+      implicit val timeout = last.create.createdAt.minusHours(1)
+      val (bufferToFlush, bufferToKeep) = buffer.partition(visit => isExpired(visit))
+      buffer = bufferToKeep
+      bufferToFlush.map(toSummary)
+    }.getOrElse(Vector.empty)
   }
 
-  private def isComplete(visit: VisitInProgress): Boolean =
-    visit.lastUpdate.exists(_.completion >= 0.999)
+  private def isExpired(visit: VisitInProgress)(implicit timeout: ZonedDateTime): Boolean =
+    visit.create.createdAt.isBefore(timeout)
+
 
   private def toSummary(visit: VisitInProgress): VisitSummary = visit match {
     case VisitInProgress(start: VisitCreate, Some(end: VisitUpdate)) => VisitSummary(start, end)

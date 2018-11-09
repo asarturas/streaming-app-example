@@ -25,8 +25,8 @@ Feature: data processing
     Then the generated analysis should match the expectation:
       # document|start time|end time|visits|uniques|time|completion
       """
-      62e09c7d-714d-40a6-9e6e-fdc525a90d59|2015-01-01T11:00Z|2015-01-01T12:00Z|1|1|0.75|1
       a8e5010b-aa0a-44c3-b8b2-6865ca0bac90|2015-01-01T10:00Z|2015-01-01T11:00Z|2|1|0.0|0
       a8e5010b-aa0a-44c3-b8b2-6865ca0bac90|2015-01-01T11:00Z|2015-01-01T12:00Z|1|1|0.0|0
+      62e09c7d-714d-40a6-9e6e-fdc525a90d59|2015-01-01T11:00Z|2015-01-01T12:00Z|1|1|0.75|1
       62e09c7d-714d-40a6-9e6e-fdc525a90d59|2015-01-01T12:00Z|2015-01-01T13:00Z|1|1|0.5|0
       """

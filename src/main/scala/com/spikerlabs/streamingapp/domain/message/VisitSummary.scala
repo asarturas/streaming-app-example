@@ -25,7 +25,7 @@ object VisitSummary {
       visitCreate.id,
       visitCreate.userId,
       visitCreate.documentId,
-      TimePeriod.fromVisitUpdate(visitUpdate),
+      TimePeriod.fromVisitCreate(visitCreate),
       time = visitUpdate.engagedTime,
       isCompleted = 1.0 - visitUpdate.completion < 0.001
     )
