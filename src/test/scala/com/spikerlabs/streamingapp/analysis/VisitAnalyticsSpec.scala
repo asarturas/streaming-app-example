@@ -80,6 +80,25 @@ class VisitAnalyticsSpec extends FlatSpec with Matchers with AppendedClues {
 
   behavior of "toVisitSummary pipe"
 
+  it should "turn single visit creation into a summary" in {
+    val stream = Stream.chunk(Chunk.seq(Seq(VisitCreate(first, first, first, earliestDate))))
+    stream.through(VisitAnalytics.toVisitSummaries).toList should contain theSameElementsAs
+      List(
+        VisitSummary(VisitCreate(first, first, first, earliestDate))
+      )
+  }
+
+  it should "turn a single visit with updates into a summary" in {
+    val stream =
+      Stream.chunk(Chunk.seq(Seq(VisitCreate(first, first, first, earliestDate)))) ++
+      Stream.chunk(Chunk.seq(Seq(VisitUpdate(first, 2, 0.5, earlierDate)))) ++
+      Stream.chunk(Chunk.seq(Seq(VisitUpdate(first, 4, 1.0, laterDate))))
+    stream.through(VisitAnalytics.toVisitSummaries).toList should contain theSameElementsAs
+      List(
+        VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 4, 1.0, laterDate))
+      )
+  }
+
   it should "turn visits into visit summaries" in {
     val stream = Stream.chunk(Chunk.seq(Seq(VisitCreate(second, second, second, earliestDate)))) ++
       Stream.chunk(Chunk.seq(Seq(VisitCreate(first, first, first, earliestDate)))) ++
@@ -95,8 +114,9 @@ class VisitAnalyticsSpec extends FlatSpec with Matchers with AppendedClues {
         VisitSummary(VisitCreate(second, second, second, earliestDate), VisitUpdate(second, 2, 0.5, laterDate)),
         VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 2, 1.0, latestDate)),
         VisitSummary(VisitCreate(third, first, first, latestDate.plusHours(1))),
-        VisitSummary(VisitCreate(fourth, first, first, latestDate.plusHours(3)))
+        VisitSummary(VisitCreate(fourth, first, first, latestDate.plusHours(3))),
       )
+
   }
 
   behavior of "toDocumentVisitAnalytics pipe"

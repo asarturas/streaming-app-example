@@ -33,7 +33,7 @@ class VisitBufferSpec extends FlatSpec with Matchers with AppendedClues {
 
     val buffer = new VisitBuffer(initialVisits)
 
-    buffer.end() shouldBe Vector(
+    buffer.end() shouldBe Seq(
       VisitSummary(VisitCreate(first, first, first, earliestDate)),
       VisitSummary(VisitCreate(second, second, second, earlierDate)),
     )
@@ -44,9 +44,24 @@ class VisitBufferSpec extends FlatSpec with Matchers with AppendedClues {
       Vector(VisitUpdate(first, 1, 1, earlierDate))
     )
 
-    buffer.end() shouldBe Vector(
+    buffer.end() shouldBe Seq(
       VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 1, 1, earlierDate)),
       VisitSummary(VisitCreate(second, second, second, earlierDate)),
+    )
+  }
+
+  it should "update existing visit with a more recent update" in {
+    val buffer = new VisitBuffer(initialVisits).add(
+      Vector(
+        VisitUpdate(first, 1, 0.2, earlierDate),
+        VisitUpdate(first, 2, 0.4, laterDate),
+        VisitUpdate(first, 3, 1.0, laterDate)
+      )
+    )
+
+    buffer.end() shouldBe Seq(
+      VisitSummary(VisitCreate(first, first, first, earlierDate), VisitUpdate(first, 3, 1.0, laterDate)),
+      VisitSummary(VisitCreate(second, second, second, earlierDate))
     )
   }
 
@@ -62,16 +77,17 @@ class VisitBufferSpec extends FlatSpec with Matchers with AppendedClues {
     val buffer = new VisitBuffer(initialVisits).add(
       Vector(
         VisitUpdate(first, 1, 0.2, earlierDate),
+        VisitUpdate(first, 1, 0.3, laterDate),
         VisitUpdate(second, 3600, 0.1, earliestDate.plusHours(1)),
         VisitCreate(third, third, third, earliestDate.plusHours(2))
       )
     )
 
-    buffer.flush() shouldBe Vector(
-      VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 1, 0.2, earlierDate)),
+    buffer.flush(earliestDate.plusHours(2)) shouldBe Seq(
+      VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 1, 0.3, laterDate)),
       VisitSummary(VisitCreate(second, second, second, laterDate), VisitUpdate(second, 3600, 0.1, earliestDate.plusHours(1))),
     )
-    buffer.end() shouldBe Vector(
+    buffer.end() shouldBe Seq(
       VisitSummary(VisitCreate(third, third, third, earliestDate.plusHours(2))),
     )
   }
