@@ -1,7 +1,5 @@
 import Dependencies._
 
-resolvers += "Typesafe Repository" at "https://repo.typesafe.com/typesafe/releases/"
-
 lazy val root = (project in file(".")).
   enablePlugins(CucumberPlugin).
   settings(
