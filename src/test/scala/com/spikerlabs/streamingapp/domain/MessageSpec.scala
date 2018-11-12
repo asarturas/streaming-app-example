@@ -46,4 +46,14 @@ class MessageSpec extends FlatSpec with Matchers with AppendedClues {
     message.right.get shouldBe a[VisitUpdate]
   }
 
+  it should "throw an exception when cannot parse known message" in {
+    val rawJson = """
+        |{
+        |  "messageType": "VisitUpdate",
+        |  "message" : {}
+        |}
+      """.stripMargin
+    an [Exception] should be thrownBy decode[Message](rawJson)
+  }
+
 }
