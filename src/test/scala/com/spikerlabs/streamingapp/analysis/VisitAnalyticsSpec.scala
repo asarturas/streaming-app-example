@@ -54,7 +54,7 @@ class VisitAnalyticsSpec extends FlatSpec with Matchers with AppendedClues {
       Stream.chunk(Chunk.seq(Seq(VisitUpdate(second, 1, 1, latestDate)))) ++
       Stream.chunk(Chunk.seq(Seq(VisitCreate(first, first, first, earliestDate))))
 
-    stream.through(VisitAnalytics.orderVisits(2)).toList should contain theSameElementsInOrderAs
+    stream.through(VisitAnalytics.orderVisits(2, 1)).toList should contain theSameElementsInOrderAs
       List(
         VisitUpdate(first, 1, 1, earlierDate), // this is released first when laterDate mes arrives, making this to pass the threshold
         VisitCreate(first, first, first, earliestDate),

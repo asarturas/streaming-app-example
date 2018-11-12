@@ -9,7 +9,7 @@ import scala.collection.SortedSet
 
 object VisitAnalytics {
   def aggregateVisits[F[_]]: Pipe[F, Message, Message] = in =>
-    in.buffer(1000).through(orderVisits(1, 1000)).through(toVisitSummaries).through(toDocumentVisitAnalytics)
+    in.through(orderVisits(1, 1000)).through(toVisitSummaries).through(toDocumentVisitAnalytics)
 
   private[analysis] def orderVisits[F[_]](thresholdInMinutes: Int = 1, bufferSizeThreshold: Int = 10000): Pipe[F, Message, Message] = {
     def order(buffer: SortedSet[Message], chunk: Chunk[Message]): (Seq[Message], SortedSet[Message]) = {
@@ -32,20 +32,18 @@ object VisitAnalytics {
           Pull.output(Chunk.seq(buffer.toSeq)) >> Pull.pure(None)
         case None => Pull.pure(None)
       }
-    s => go(SortedSet.empty[Message], s).stream
+    s => go(SortedSet.empty[Message], s.buffer(bufferSizeThreshold)).stream
   }
 
   private[analysis] def toVisitSummaries[F[_]]: Pipe[F, Message, VisitSummary] = {
     def go(buffer: VisitBuffer, s: Stream[F, Message]): Pull[F, VisitSummary, Option[Unit]] =
       s.pull.uncons.flatMap {
         case Some((chunk, s)) =>
-          val c = chunk.toVector.foldLeft(Vector.empty[Message])((acc, msg) => acc :+ msg)
-          buffer.add(c)
-          //c.map(Message.date).foreach(println)
-          Pull.output(Chunk.seq(buffer.flush(Message.date(c.last).minusHours(1)))) >> go(buffer, s)
+          val messages = chunk.toVector.foldLeft(Vector.empty[Message])((acc, msg) => acc :+ msg)
+          buffer.add(messages)
+          Pull.output(Chunk.seq(buffer.flush(Message.date(messages.last).minusHours(1)))) >> go(buffer, s)
         case None =>
           Pull.output(Chunk.seq(buffer.end())) >> Pull.pure(None)
-//        case None => Pull.pure(None)
       }
     s => go(new VisitBuffer(), s).stream
   }
@@ -61,12 +59,8 @@ object VisitAnalytics {
   }
 
   private def groupSummariesByHour[F[_]]: Pipe[F, VisitSummary, (Long, List[VisitSummary])] =
-    s => s.groupAdjacentBy { w =>
-      //println(w.timePeriod.startTime.toEpochSecond)
-      w.timePeriod.startTime.toEpochSecond
-    }(Eq.fromUniversalEquals)
-      .flatMap {
-        case (x, v) => //println("adj -> " + v.size)
-          Stream.emit((x -> v.toList))
+    s => s.groupAdjacentBy(_.timePeriod.startTime.toEpochSecond)(Eq.fromUniversalEquals)
+      .flatMap{
+        case (longDate, messages) => Stream.emit(longDate -> messages.toList)
       }
 }
