@@ -1,3 +1,5 @@
+http://[![CircleCI](https://circleci.com/gh/asarturas/streaming-app-example/tree/master.svg?style=svg)](https://circleci.com/gh/asarturas/streaming-app-example/tree/master)
+
 # Sample streaming app
 
 ### Brief description of the solution
