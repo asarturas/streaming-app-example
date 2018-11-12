@@ -15,20 +15,7 @@ import fs2.{io, text}
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 
-case class DataPoint(far: Double)
-
-object DataPoint {
-  implicit val decoder = deriveDecoder[DataPoint]
-}
-
-case class OutSomething(c: Double, f: Double)
-
-object OutSomething {
-  implicit val encoder = deriveEncoder[OutSomething]
-}
-
 object App extends IOApp {
-
   val blockingResource: Resource[IO, ExecutionContextExecutorService] =
       Resource.make(
         IO(ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))) // set up

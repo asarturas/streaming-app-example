@@ -54,7 +54,7 @@ class VisitAnalyticsSpec extends FlatSpec with Matchers with AppendedClues {
       Stream.chunk(Chunk.seq(Seq(VisitUpdate(second, 1, 1, latestDate)))) ++
       Stream.chunk(Chunk.seq(Seq(VisitCreate(first, first, first, earliestDate))))
 
-    stream.through(VisitAnalytics.orderVisits(2)).toList should contain theSameElementsInOrderAs
+    stream.through(VisitAnalytics.orderVisits(2, 1)).toList should contain theSameElementsInOrderAs
       List(
         VisitUpdate(first, 1, 1, earlierDate), // this is released first when laterDate mes arrives, making this to pass the threshold
         VisitCreate(first, first, first, earliestDate),
@@ -80,9 +80,28 @@ class VisitAnalyticsSpec extends FlatSpec with Matchers with AppendedClues {
 
   behavior of "toVisitSummary pipe"
 
+  it should "turn single visit creation into a summary" in {
+    val stream = Stream.chunk(Chunk.seq(Seq(VisitCreate(first, first, first, earliestDate))))
+    stream.through(VisitAnalytics.toVisitSummaries).toList should contain theSameElementsAs
+      List(
+        VisitSummary(VisitCreate(first, first, first, earliestDate))
+      )
+  }
+
+  it should "turn a single visit with updates into a summary" in {
+    val stream =
+      Stream.chunk(Chunk.seq(Seq(VisitCreate(first, first, first, earliestDate)))) ++
+      Stream.chunk(Chunk.seq(Seq(VisitUpdate(first, 2, 0.5, earlierDate)))) ++
+      Stream.chunk(Chunk.seq(Seq(VisitUpdate(first, 4, 1.0, laterDate))))
+    stream.through(VisitAnalytics.toVisitSummaries).toList should contain theSameElementsAs
+      List(
+        VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 4, 1.0, laterDate))
+      )
+  }
+
   it should "turn visits into visit summaries" in {
     val stream = Stream.chunk(Chunk.seq(Seq(VisitCreate(second, second, second, earliestDate)))) ++
-      Stream.chunk(Chunk.seq(Seq(VisitCreate(first, first, first, earliestDate)))) ++
+      Stream.chunk(Chunk.seq(Seq(VisitCreate(first, first, first, earlierDate)))) ++
       Stream.chunk(Chunk.seq(Seq(VisitUpdate(second, 1, 0.5, earlierDate)))) ++
       Stream.chunk(Chunk.seq(Seq(VisitUpdate(first, 1, 0.5, earlierDate)))) ++
       Stream.chunk(Chunk.seq(Seq(VisitUpdate(second, 2, 0.5, laterDate)))) ++
@@ -90,33 +109,34 @@ class VisitAnalyticsSpec extends FlatSpec with Matchers with AppendedClues {
       Stream.chunk(Chunk.seq(Seq(VisitCreate(third, first, first, latestDate.plusHours(1))))) ++
       Stream.chunk(Chunk.seq(Seq(VisitCreate(fourth, first, first, latestDate.plusHours(3)))))
 
-    stream.through(VisitAnalytics.toVisitSummaries).toList should contain theSameElementsInOrderAs
+    stream.through(VisitAnalytics.toVisitSummaries).toList should contain theSameElementsAs
       List(
         VisitSummary(VisitCreate(second, second, second, earliestDate), VisitUpdate(second, 2, 0.5, laterDate)),
         VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 2, 1.0, latestDate)),
         VisitSummary(VisitCreate(third, first, first, latestDate.plusHours(1))),
+        VisitSummary(VisitCreate(fourth, first, first, latestDate.plusHours(3))),
+      )
+
+  }
+
+    behavior of "toDocumentVisitAnalytics pipe"
+
+    it should "turn visit summaries into document visit analytics" in {
+      val stream = Stream(
+        VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 2, 1.0, latestDate)),
+        VisitSummary(VisitCreate(second, second, second, earliestDate), VisitUpdate(second, 2, 0.5, laterDate)),
+        VisitSummary(VisitCreate(third, first, first, latestDate.plusHours(1))),
         VisitSummary(VisitCreate(fourth, first, first, latestDate.plusHours(3)))
       )
-  }
 
-  behavior of "toDocumentVisitAnalytics pipe"
-
-  it should "turn visit summaries into document visit analytics" in {
-    val stream = Stream(
-      VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 2, 1.0, latestDate)),
-      VisitSummary(VisitCreate(second, second, second, earliestDate), VisitUpdate(second, 2, 0.5, laterDate)),
-      VisitSummary(VisitCreate(third, first, first, latestDate.plusHours(1))),
-      VisitSummary(VisitCreate(fourth, first, first, latestDate.plusHours(3)))
-    )
-
-    stream.through(VisitAnalytics.toDocumentVisitAnalytics).toList should contain theSameElementsAs
-      DocumentVisitAnalytics.fromSummaries(
-        List(
-          VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 2, 1.0, latestDate)),
-          VisitSummary(VisitCreate(second, second, second, earliestDate), VisitUpdate(second, 2, 0.5, laterDate)),
-          VisitSummary(VisitCreate(third, first, first, latestDate.plusHours(1))),
-          VisitSummary(VisitCreate(fourth, first, first, latestDate.plusHours(3)))
+      stream.through(VisitAnalytics.toDocumentVisitAnalytics).toList should contain theSameElementsAs
+        DocumentVisitAnalytics.fromSummaries(
+          List(
+            VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 2, 1.0, latestDate)),
+            VisitSummary(VisitCreate(second, second, second, earliestDate), VisitUpdate(second, 2, 0.5, laterDate)),
+            VisitSummary(VisitCreate(third, first, first, latestDate.plusHours(1))),
+            VisitSummary(VisitCreate(fourth, first, first, latestDate.plusHours(3)))
+          )
         )
-      )
-  }
+    }
 }

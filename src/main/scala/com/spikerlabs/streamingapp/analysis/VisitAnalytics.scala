@@ -9,7 +9,7 @@ import scala.collection.SortedSet
 
 object VisitAnalytics {
   def aggregateVisits[F[_]]: Pipe[F, Message, Message] = in =>
-    in.through(orderVisits()).through(toVisitSummaries).through(toDocumentVisitAnalytics)
+    in.through(orderVisits(1, 1000)).through(toVisitSummaries).through(toDocumentVisitAnalytics)
 
   private[analysis] def orderVisits[F[_]](thresholdInMinutes: Int = 1, bufferSizeThreshold: Int = 10000): Pipe[F, Message, Message] = {
     def order(buffer: SortedSet[Message], chunk: Chunk[Message]): (Seq[Message], SortedSet[Message]) = {
@@ -32,32 +32,35 @@ object VisitAnalytics {
           Pull.output(Chunk.seq(buffer.toSeq)) >> Pull.pure(None)
         case None => Pull.pure(None)
       }
-    s => go(SortedSet.empty[Message], s).stream
+    s => go(SortedSet.empty[Message], s.buffer(bufferSizeThreshold)).stream
   }
 
   private[analysis] def toVisitSummaries[F[_]]: Pipe[F, Message, VisitSummary] = {
     def go(buffer: VisitBuffer, s: Stream[F, Message]): Pull[F, VisitSummary, Option[Unit]] =
       s.pull.uncons.flatMap {
         case Some((chunk, s)) =>
-          buffer.add(chunk.toVector)
-          Pull.output(Chunk.vector(buffer.flush())) >> go(buffer, s)
-        case None if !buffer.isEmpty =>
-          Pull.output(Chunk.vector(buffer.end())) >> Pull.pure(None)
-        case None => Pull.pure(None)
+          val messages = chunk.toVector.foldLeft(Vector.empty[Message])((acc, msg) => acc :+ msg)
+          buffer.add(messages)
+          Pull.output(Chunk.seq(buffer.flush(Message.date(messages.last).minusHours(1)))) >> go(buffer, s)
+        case None =>
+          Pull.output(Chunk.seq(buffer.end())) >> Pull.pure(None)
       }
     s => go(new VisitBuffer(), s).stream
   }
 
   private[analysis] def toDocumentVisitAnalytics[F[_]]: Pipe[F, VisitSummary, DocumentVisitAnalytics] = {
-    def go(s: Stream[F, Chunk[VisitSummary]]): Pull[F, DocumentVisitAnalytics, Option[Unit]] =
-      s.pull.uncons1.flatMap {
+    def go(s: Stream[F, (Long, List[VisitSummary])]): Pull[F, DocumentVisitAnalytics, Option[Unit]] =
+      s.pull.uncons.flatMap {
         case Some((mess, s)) =>
-          Pull.output(Chunk.vector(DocumentVisitAnalytics.fromSummaries(mess.toList).toVector)) >> go(s)
+          Pull.output(Chunk.vector(DocumentVisitAnalytics.fromSummaries(mess.toList.head._2).toVector)) >> go(s)
         case None => Pull.pure(None)
       }
     s => go(s.through(groupSummariesByHour)).stream
   }
 
-  private def groupSummariesByHour[F[_]]: Pipe[F, VisitSummary, Chunk[VisitSummary]] =
-    s => s.groupAdjacentBy(_.timePeriod.startTime.toEpochSecond)(Eq.fromUniversalEquals).map(_._2)
+  private def groupSummariesByHour[F[_]]: Pipe[F, VisitSummary, (Long, List[VisitSummary])] =
+    s => s.groupAdjacentBy(_.timePeriod.startTime.toEpochSecond)(Eq.fromUniversalEquals)
+      .flatMap{
+        case (longDate, messages) => Stream.emit(longDate -> messages.toList)
+      }
 }

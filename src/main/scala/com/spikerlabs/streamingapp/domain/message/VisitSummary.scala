@@ -16,11 +16,11 @@ object VisitSummary {
       visit.userId,
       visit.documentId,
       TimePeriod.fromVisitCreate(visit),
-      0,
+      time = 0,
       isCompleted = false
     )
 
-  def apply(visitCreate: VisitCreate, visitUpdate: VisitUpdate): VisitSummary =
+  def apply(visitCreate: VisitCreate, visitUpdate: VisitUpdate): VisitSummary = {
     VisitSummary(
       visitCreate.id,
       visitCreate.userId,
@@ -29,5 +29,6 @@ object VisitSummary {
       time = visitUpdate.engagedTime,
       isCompleted = 1.0 - visitUpdate.completion < 0.001
     )
+  }
 
 }
