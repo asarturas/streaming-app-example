@@ -1,5 +1,5 @@
 [![CircleCI](https://circleci.com/gh/asarturas/streaming-app-example/tree/master.svg?style=svg)](https://circleci.com/gh/asarturas/streaming-app-example/tree/master)
-[![Coverage Status](https://coveralls.io/repos/github/asarturas/streaming-app-example/badge.svg?branch=a6136d86098eb52949425148b3763449bc5b5900)](https://coveralls.io/github/asarturas/streaming-app-example?branch=a6136d86098eb52949425148b3763449bc5b5900)
+[![Coverage Status](https://coveralls.io/repos/github/asarturas/streaming-app-example/badge.svg?branch=master)](https://coveralls.io/github/asarturas/streaming-app-example?branch=master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/dc332b1fac29482bb1812a04a7dbc49c)](https://app.codacy.com/app/asarturas/streaming-app-example?utm_source=github.com&utm_medium=referral&utm_content=asarturas/streaming-app-example&utm_campaign=Badge_Grade_Settings)
 
 # Sample streaming app
