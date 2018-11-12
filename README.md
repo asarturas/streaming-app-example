@@ -44,6 +44,11 @@ Example statistics:
 
 Note: time is in hours.
 
+### Tests:
+
+- `sbt cucumber` to run integration tests
+- `sbt test` to run the unit tests
+
 ### Features
 
 Current implementation takes ~7 min to process and aggregate ~1 million of events on a single core,
@@ -54,11 +59,6 @@ Single node could process 2 billion of messages, which could be enough for many 
 
 - Stream data from file: [features/data_acquisition.feature](src/test/resources/features/data_acquisition.feature);
 - Aggregate data into analytics: [features/data_processing.feature](src/test/resources/features/data_processing.feature).
-
-### Tests:
-
-- `sbt cucumber` to run integration tests
-- `sbt test` to run the unit tests
 
 #### What is missing:
 
