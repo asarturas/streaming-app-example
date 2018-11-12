@@ -46,8 +46,9 @@ Note: time is in hours.
 
 ### Features
 
-Current implementation is first naïve version of the solution.
-It is very basic and not optimal, so it takes ages to process data.
+Current implementation takes ~7 min to process and aggregate ~1 million of events on a single core,
+there seems to be a data leak in processing and speed could be improved.
+Single node could process 1.5 billion of events, which could be enough for many use cases.
 
 #### What is implemented:
 
@@ -56,17 +57,17 @@ It is very basic and not optimal, so it takes ages to process data.
 
 #### What is missing:
 
-- The aggregation is very naïve and slow, emphasis on just having it working for basic cases;
-- Everything is hardcoded and not automatically tested in the main;
+- As mentioned above, the aggregation is quite slow, emphasis on just having it working for basic cases;
+- Many things in main app object are hardcoded and not automatically tested at the moment;
 - There could be more generic stream acquisition, not necessary from file;
 - The output is just going to stdout, this should be piping into database;
-- Analytics querying is missing;
+- Analytics persistence and querying is missing;
 
 #### Notable limitations and edge cases:
 
+- Visit buffer flush() is slow and there is a bug in it - some of the aggregated records stays there until the end, which gradually slows down the processing;
 - If visit spans two hours (starts at 11:50, ends at 12:20), then it will be considered only towards the first hour from 11:00 to 12:00, but the stats will include the later hour from 12:00 to 13:00;
 - Single incorrect message would kill the stream;
 - Analytics calculation is not parallel;
-- A lot of operations on dates might be contributing to slowness too;
-- A lot of transformations between Vectors and SortedSets in stream pipes;
-- In most of the cases only success path is considered in most places;
+- A lot of operations on dates might be contributing to slowness;
+- Only success path is considered in many places;

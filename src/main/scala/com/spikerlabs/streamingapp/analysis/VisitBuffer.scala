@@ -42,13 +42,15 @@ class VisitBuffer(private var initialVisits: Vector[Message] = Vector.empty[Mess
   def flush(timeout: ZonedDateTime): Seq[VisitSummary] = {
     val timeoutSeconds = timeout.toInstant.getEpochSecond
     // filter is quite expensive so quick check to see if we can avoid it
-    if (dateToIdIndex.firstKey >= timeoutSeconds) Seq.empty
+    if (dateToIdIndex.firstKey > timeoutSeconds) Seq.empty
     val datesToFlush = dateToIdIndex.filterKeys(x => x <= timeoutSeconds)
     val idsToFlush = datesToFlush.values.flatten
     if (idsToFlush.nonEmpty) {
-      val itemsToFlush = idsToFlush.flatMap(buffer.get)
-      idsToFlush.foreach { id =>
+      // effecful flat map is not idiomatic, but it saves extra iteration
+      val itemsToFlush = idsToFlush.flatMap { id =>
+        val item = buffer.get(id)
         buffer.remove(id)
+        item
       }
       // cleanup every now and then - it's expensive so not doing on each flush
       if (dateToIdIndex.size > buffer.size) {
