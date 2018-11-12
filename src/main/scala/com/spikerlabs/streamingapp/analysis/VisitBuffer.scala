@@ -35,7 +35,7 @@ class VisitBuffer(private var initialVisits: Vector[Message] = Vector.empty[Mess
     val time = date.toInstant.getEpochSecond
     dateToIdIndex.get(time) match {
       case None => dateToIdIndex.put(time, List(id))
-      case Some(list) => dateToIdIndex.put(time, id :: list)
+      case Some(list) => dateToIdIndex.update(time, id :: list)
     }
   }
 
@@ -44,9 +44,9 @@ class VisitBuffer(private var initialVisits: Vector[Message] = Vector.empty[Mess
     // filter is quite expensive so quick check to see if we can avoid it
     if (dateToIdIndex.firstKey > timeoutSeconds) Seq.empty
     val datesToFlush = dateToIdIndex.filterKeys(x => x <= timeoutSeconds)
-    val idsToFlush = datesToFlush.values.flatten
+    val idsToFlush = datesToFlush.flatMap(_._2)
     if (idsToFlush.nonEmpty) {
-      // effecful flat map is not idiomatic, but it saves extra iteration
+      // effectful flat map is not idiomatic, but it saves extra iteration
       val itemsToFlush = idsToFlush.flatMap { id =>
         val item = buffer.get(id)
         buffer.remove(id)
@@ -54,7 +54,7 @@ class VisitBuffer(private var initialVisits: Vector[Message] = Vector.empty[Mess
       }
       // cleanup every now and then - it's expensive so not doing on each flush
       if (dateToIdIndex.size > buffer.size) {
-        dateToIdIndex = dateToIdIndex.filterNot(x => buffer.contains(x._2.head))
+        dateToIdIndex = dateToIdIndex.filter(x => buffer.contains(x._2.head))
       }
       itemsToFlush.map(toSummary).toSeq
     } else {

@@ -92,4 +92,39 @@ class VisitBufferSpec extends FlatSpec with Matchers with AppendedClues {
     )
   }
 
+  it should "update two visits in parallel and flush them both at timeout" in {
+    val buffer = new VisitBuffer(initialVisits)
+      .add(Vector(VisitUpdate(first, 1, 0.2, earlierDate)))
+      .add(Vector(VisitUpdate(second, 1, 0.3, earlierDate)))
+      .add(Vector(VisitUpdate(first, 2, 0.4, laterDate)))
+      .add(Vector(VisitUpdate(second, 1, 0.6, laterDate)))
+      .add(Vector(VisitUpdate(second, 3, 0.9, latestDate)))
+      .add(Vector(VisitUpdate(first, 3, 0.6, latestDate)))
+
+    buffer.flush(latestDate) should contain theSameElementsInOrderAs Seq(
+      VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 3, 0.6, latestDate)),
+      VisitSummary(VisitCreate(second, second, second, earlierDate), VisitUpdate(second, 3, 0.9, latestDate)),
+    )
+
+    buffer.end() shouldBe empty
+  }
+
+  it should "gradually flush matching records from the buffer" in {
+    val buffer = new VisitBuffer(initialVisits)
+      .add(
+        Vector(
+          VisitCreate(third, third, third, laterDate),
+          VisitCreate(fourth, fourth, fourth, latestDate)
+        )
+      )
+
+    buffer.flush(earliestDate) shouldBe Seq(VisitSummary(VisitCreate(first, first, first, earliestDate))) withClue buffer.end()
+
+    buffer.flush(earlierDate) shouldBe Seq(VisitSummary(VisitCreate(second, second, second, earlierDate))) withClue buffer.end()
+
+    buffer.flush(laterDate) shouldBe Seq(VisitSummary(VisitCreate(third, third, third, laterDate))) withClue buffer.end()
+
+    buffer.end() shouldBe Seq(VisitSummary(VisitCreate(fourth, fourth, fourth,latestDate)))
+  }
+
 }

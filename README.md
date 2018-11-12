@@ -51,9 +51,8 @@ Note: time is in hours.
 
 ### Features
 
-Current implementation takes ~7 min to process and aggregate ~1 million of events on a single core,
-there seems to be a data leak in processing and speed could be improved.
-Single node could process 2 billion of messages, which could be enough for many use cases.
+Current implementation takes ~90 seconds to process and aggregate ~1 million of messages on a single core,
+which adds up to ~1 billion messages per day, which could be enough for many use cases.
 
 #### What is implemented:
 
@@ -62,17 +61,17 @@ Single node could process 2 billion of messages, which could be enough for many 
 
 #### What is missing:
 
-- As mentioned above, the aggregation is quite slow, emphasis on just having it working for basic cases;
+- There are unhandled edge cases and code is not at it's cleanest in buffer implementation, emphasis was on having it working for basic cases;
 - Many things in main app object are hardcoded and not automatically tested at the moment;
 - There could be more generic stream acquisition, not necessary from file;
 - The output is just going to stdout, this should be piping into database;
-- Analytics persistence and querying is missing;
+- Analytics persistence and querying are missing;
 
 #### Notable limitations and edge cases:
 
-- Visit buffer flush() is slow and there is a bug in it - some of the aggregated records stays there until the end, which gradually slows down the processing;
 - If visit spans two hours (starts at 11:50, ends at 12:20), then it will be considered only towards the first hour from 11:00 to 12:00, but the stats will include the later hour from 12:00 to 13:00;
 - Single incorrect message would kill the stream;
 - Analytics calculation is not parallel;
-- A lot of operations on dates might be contributing to slowness;
+- Dates are not handled cleanly - some places use ZonedDateTime, others converts it to long back and forth;
+- Timeout is scattered across the code base, it could be concentrated in buffer instead;
 - Only success path is considered in many places;
