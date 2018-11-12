@@ -1,4 +1,5 @@
 [![CircleCI](https://circleci.com/gh/asarturas/streaming-app-example/tree/master.svg?style=svg)](https://circleci.com/gh/asarturas/streaming-app-example/tree/master)
+[![Coverage Status](https://coveralls.io/repos/github/asarturas/streaming-app-example/badge.svg?branch=a6136d86098eb52949425148b3763449bc5b5900)](https://coveralls.io/github/asarturas/streaming-app-example?branch=a6136d86098eb52949425148b3763449bc5b5900)
 
 # Sample streaming app
 
