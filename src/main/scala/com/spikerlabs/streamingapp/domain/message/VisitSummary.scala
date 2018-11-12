@@ -21,7 +21,6 @@ object VisitSummary {
     )
 
   def apply(visitCreate: VisitCreate, visitUpdate: VisitUpdate): VisitSummary = {
-    //println(s"was -> ${visitCreate.createdAt} became -> ${TimePeriod.fromVisitCreate(visitCreate)}")
     VisitSummary(
       visitCreate.id,
       visitCreate.userId,

@@ -15,7 +15,6 @@ object DocumentVisitAnalytics {
     val groupedSummaries = summaries.groupBy(_.documentId).map {
       case (documentId, documentVisits) => (documentId, documentVisits.groupBy(_.timePeriod))
     }
-    //groupedSummaries.foreach(x => println("gr -> " + x._2.size))
     groupedSummaries.flatMap {
       case (documentId, groupedDocumentVisits) => groupedDocumentVisits.map {
         case (timePeriod, documentVisitsForPeriod) =>
