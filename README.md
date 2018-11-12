@@ -48,7 +48,7 @@ Note: time is in hours.
 
 Current implementation takes ~7 min to process and aggregate ~1 million of events on a single core,
 there seems to be a data leak in processing and speed could be improved.
-Single node could process 1.5 billion of events, which could be enough for many use cases.
+Single node could process 2 billion of messages, which could be enough for many use cases.
 
 #### What is implemented:
 
