@@ -33,8 +33,14 @@ jobs:
             - ~/.m2
           key: v1-dependencies--{{ checksum "build.sbt" }}
 
+      # run compile check
+      - run: sbt clean compile
+
       # run unit tests
-      - run: sbt test
+      - run: sbt coverage test
 
       # run integration tests
-      - run: sbt cucumber
+      - run: sbt coverage test:cucumber
+
+      # generate report
+      - run: sbt coverageReport
