@@ -20,7 +20,7 @@ class VisitBuffer(private var initialVisits: Vector[Message] = Vector.empty[Mess
         case false => 1
       }
   }
-  private var dateIndex: SortedMap[ZonedDateTime, UUID] = SortedMap.empty
+  private var dateToIdIndex: SortedMap[Long, List[UUID]] = SortedMap.empty
 
   add(initialVisits)
 
@@ -30,7 +30,7 @@ class VisitBuffer(private var initialVisits: Vector[Message] = Vector.empty[Mess
     visits.foreach {
       case msg: VisitCreate =>
         buffer.put(msg.id, VisitInProgress(msg))
-        dateIndex.put(msg.createdAt, msg.id)
+        addToDateIndex(msg.createdAt, msg.id)
       case msg: VisitUpdate =>
         buffer.get(msg.id).foreach { previous =>
           buffer.put(msg.id, VisitInProgress(previous.create, Some(msg)))
@@ -40,25 +40,50 @@ class VisitBuffer(private var initialVisits: Vector[Message] = Vector.empty[Mess
     this
   }
 
-  def flush(timeout: ZonedDateTime): Vector[VisitSummary] = {
-    val datesToFlush = dateIndex.takeWhile(_._1.isBefore(timeout))
-      val idsToFlush = datesToFlush.values
+  private def addToDateIndex(date: ZonedDateTime, id: UUID): Unit = {
+    val time = date.toInstant.getEpochSecond
+    dateToIdIndex.get(time) match {
+      case None => dateToIdIndex.put(time, List(id))
+      case Some(list) => dateToIdIndex.put(time, id :: list)
+    }
+  }
+
+  def flush(timeout: ZonedDateTime): Seq[VisitSummary] = {
+    val te = timeout.toInstant.getEpochSecond
+//    val x: (Long, List[UUID]) = dateToIdIndex.maxBy(_._1 < te)
+//    UUID.from
+//    val datesToFlush = dateToIdIndex.takeWhile(_ != x)
+    if (dateToIdIndex.firstKey >= te) Seq.empty
+    val datesToFlush = dateToIdIndex.filterKeys(x => x <= te)
+//    val datesToFlush = dateToIdIndex.filterKeys(_ < te)//dateToIdIndex.get(te) match {
+//      case Some(id) => dateToIdIndex.splitAt(dateToIdIndex.zipWithIndex.getOrElse((te, id), 0))._1
+//      case None => dateToIdIndex.takeWhile(_._1 < te)
+//    }
+      val idsToFlush = datesToFlush.values.flatten
       if (idsToFlush.nonEmpty) {
+//        println("flush " + buffer.size + " " + dateToIdIndex.size)
         val itemsToFlush = idsToFlush.flatMap(buffer.get)
-//        dateIndex = dateIndex.filterNot(x => idsToFlush.toSeq.contains(x._2))
-        idsToFlush.foreach(buffer.remove)
-//        buffer = idsToFlush.map(buffer.get).to
-        dateIndex = buffer.map {
-          case (id, visitInProgress) => (visitInProgress.create.createdAt, id)
+        idsToFlush.foreach { id =>
+          buffer.remove(id)
         }
-//        buffer = buffer.(q => !idsToFlush.toSeq.contains(q._1))
-//        dateIndex = dateIndex.filterNot(x => buffer.contains(x._2))
-        val d = itemsToFlush.map(toSummary).toVector
+        if (dateToIdIndex.size > buffer.size) {
+//          buffer = buffer.foldLeft(SortedMap.empty[UUID, VisitInProgress]) { (acc, elem) =>
+//            if (idsToFlush.exists(_ != elem._1)) acc.put(elem._1, elem._2)
+//            acc
+//          }
+          dateToIdIndex = dateToIdIndex.filterNot(x => buffer.contains(x._2.head))
+//          println("after clean " + buffer.size + " " + dateToIdIndex.size)
+        } else {
+
+        }
+
+
+        val d = itemsToFlush.map(toSummary).toSeq
         //println("data")
         //d.foreach(println)
         d
       } else {
-        Vector.empty
+        Seq.empty
       }
   }
 
@@ -72,7 +97,19 @@ class VisitBuffer(private var initialVisits: Vector[Message] = Vector.empty[Mess
   }
 
 
-  def end(): Vector[VisitSummary] = {
-    dateIndex.values.flatMap(buffer.get).map(toSummary).toVector
+  def end(): Seq[VisitSummary] = {
+//    println("size = " + buffer.size)
+//    flush(buffer.head._2.create.createdAt.minusHours(2))
+    //    buffer.values.map(toSummary).toSeq
+    //    if (buffer.nonEmpty) flush(buffer.last._2.create.createdAt) ++ dateToIdIndex.values.flatMap(x => x.flatMap(buffer.get)).map(toSummary).toSeq
+    //    else Seq.empty
+//    println("x = " + x.size + " buff = " + buffer.size + " date = " + dateToIdIndex.size)
+//    x //++ buffer.filterNot(y => x.exists(_.id == y)).values.map(toSummary)
+//    buffer.values.map(toSummary).toSeq
+    //    val ordered: Seq[VisitInProgress] = dateToIdIndex.values.flatMap(x => x.flatMap(buffer.get)).toSeq//.map(toSummary).toSeq
+val ordered: Seq[VisitInProgress] = dateToIdIndex.values.flatten.flatMap(buffer.get).toSeq//.map(toSummary).toSeq
+        val theRest = buffer.values.filterNot(ordered.contains).toSeq
+    (ordered ++ theRest).map(toSummary)
+//    ordered.map(toSummary)
   }
 }

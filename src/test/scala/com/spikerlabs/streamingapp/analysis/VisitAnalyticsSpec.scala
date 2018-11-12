@@ -101,7 +101,7 @@ class VisitAnalyticsSpec extends FlatSpec with Matchers with AppendedClues {
 
   it should "turn visits into visit summaries" in {
     val stream = Stream.chunk(Chunk.seq(Seq(VisitCreate(second, second, second, earliestDate)))) ++
-      Stream.chunk(Chunk.seq(Seq(VisitCreate(first, first, first, earliestDate)))) ++
+      Stream.chunk(Chunk.seq(Seq(VisitCreate(first, first, first, earlierDate)))) ++
       Stream.chunk(Chunk.seq(Seq(VisitUpdate(second, 1, 0.5, earlierDate)))) ++
       Stream.chunk(Chunk.seq(Seq(VisitUpdate(first, 1, 0.5, earlierDate)))) ++
       Stream.chunk(Chunk.seq(Seq(VisitUpdate(second, 2, 0.5, laterDate)))) ++
@@ -109,7 +109,7 @@ class VisitAnalyticsSpec extends FlatSpec with Matchers with AppendedClues {
       Stream.chunk(Chunk.seq(Seq(VisitCreate(third, first, first, latestDate.plusHours(1))))) ++
       Stream.chunk(Chunk.seq(Seq(VisitCreate(fourth, first, first, latestDate.plusHours(3)))))
 
-    stream.through(VisitAnalytics.toVisitSummaries).toList should contain theSameElementsInOrderAs
+    stream.through(VisitAnalytics.toVisitSummaries).toList should contain theSameElementsAs
       List(
         VisitSummary(VisitCreate(second, second, second, earliestDate), VisitUpdate(second, 2, 0.5, laterDate)),
         VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 2, 1.0, latestDate)),
@@ -119,24 +119,24 @@ class VisitAnalyticsSpec extends FlatSpec with Matchers with AppendedClues {
 
   }
 
-  behavior of "toDocumentVisitAnalytics pipe"
+    behavior of "toDocumentVisitAnalytics pipe"
 
-  it should "turn visit summaries into document visit analytics" in {
-    val stream = Stream(
-      VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 2, 1.0, latestDate)),
-      VisitSummary(VisitCreate(second, second, second, earliestDate), VisitUpdate(second, 2, 0.5, laterDate)),
-      VisitSummary(VisitCreate(third, first, first, latestDate.plusHours(1))),
-      VisitSummary(VisitCreate(fourth, first, first, latestDate.plusHours(3)))
-    )
-
-    stream.through(VisitAnalytics.toDocumentVisitAnalytics).toList should contain theSameElementsAs
-      DocumentVisitAnalytics.fromSummaries(
-        List(
-          VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 2, 1.0, latestDate)),
-          VisitSummary(VisitCreate(second, second, second, earliestDate), VisitUpdate(second, 2, 0.5, laterDate)),
-          VisitSummary(VisitCreate(third, first, first, latestDate.plusHours(1))),
-          VisitSummary(VisitCreate(fourth, first, first, latestDate.plusHours(3)))
-        )
+    it should "turn visit summaries into document visit analytics" in {
+      val stream = Stream(
+        VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 2, 1.0, latestDate)),
+        VisitSummary(VisitCreate(second, second, second, earliestDate), VisitUpdate(second, 2, 0.5, laterDate)),
+        VisitSummary(VisitCreate(third, first, first, latestDate.plusHours(1))),
+        VisitSummary(VisitCreate(fourth, first, first, latestDate.plusHours(3)))
       )
-  }
+
+      stream.through(VisitAnalytics.toDocumentVisitAnalytics).toList should contain theSameElementsAs
+        DocumentVisitAnalytics.fromSummaries(
+          List(
+            VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 2, 1.0, latestDate)),
+            VisitSummary(VisitCreate(second, second, second, earliestDate), VisitUpdate(second, 2, 0.5, laterDate)),
+            VisitSummary(VisitCreate(third, first, first, latestDate.plusHours(1))),
+            VisitSummary(VisitCreate(fourth, first, first, latestDate.plusHours(3)))
+          )
+        )
+    }
 }

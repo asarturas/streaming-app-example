@@ -28,7 +28,6 @@ object OutSomething {
 }
 
 object App extends IOApp {
-
   val blockingResource: Resource[IO, ExecutionContextExecutorService] =
       Resource.make(
         IO(ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))) // set up

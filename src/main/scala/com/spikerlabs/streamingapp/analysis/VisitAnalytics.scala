@@ -9,7 +9,7 @@ import scala.collection.SortedSet
 
 object VisitAnalytics {
   def aggregateVisits[F[_]]: Pipe[F, Message, Message] = in =>
-    in.buffer(100).through(orderVisits(1, 100) ).through(toVisitSummaries).through(toDocumentVisitAnalytics)
+    in.buffer(1000).through(orderVisits(1, 1000)).through(toVisitSummaries).through(toDocumentVisitAnalytics)
 
   private[analysis] def orderVisits[F[_]](thresholdInMinutes: Int = 1, bufferSizeThreshold: Int = 10000): Pipe[F, Message, Message] = {
     def order(buffer: SortedSet[Message], chunk: Chunk[Message]): (Seq[Message], SortedSet[Message]) = {
@@ -18,7 +18,7 @@ object VisitAnalytics {
       val (toOutput, newBuffer) = (buffer ++ chunk.toVector).partition(msg => Message.date(msg).isBefore(timeout))
       if (newBuffer.size >= bufferSizeThreshold) {
         val (bufferToFlush, bufferToKeep) = newBuffer.splitAt(newBuffer.size / 3)
-        (bufferToFlush.toSeq ++ toOutput, bufferToKeep)
+        (toOutput.toSeq ++ bufferToFlush, bufferToKeep)
       } else {
         (toOutput.toSeq, newBuffer)
       }
@@ -39,13 +39,13 @@ object VisitAnalytics {
     def go(buffer: VisitBuffer, s: Stream[F, Message]): Pull[F, VisitSummary, Option[Unit]] =
       s.pull.uncons.flatMap {
         case Some((chunk, s)) =>
-          val c = chunk.toVector
+          val c = chunk.toVector.foldLeft(Vector.empty[Message])((acc, msg) => acc :+ msg)
           buffer.add(c)
           //c.map(Message.date).foreach(println)
-          Pull.output(Chunk.vector(buffer.flush(Message.date(c.last).minusHours(1)))) >> go(buffer, s)
-        case None if !buffer.isEmpty =>
-          Pull.output(Chunk.vector(buffer.end())) >> Pull.pure(None)
-        case None => Pull.pure(None)
+          Pull.output(Chunk.seq(buffer.flush(Message.date(c.last).minusHours(1)))) >> go(buffer, s)
+        case None =>
+          Pull.output(Chunk.seq(buffer.end())) >> Pull.pure(None)
+//        case None => Pull.pure(None)
       }
     s => go(new VisitBuffer(), s).stream
   }

@@ -83,7 +83,7 @@ class VisitBufferSpec extends FlatSpec with Matchers with AppendedClues {
       )
     )
 
-    buffer.flush(earliestDate.plusHours(2)) shouldBe Seq(
+    buffer.flush(earliestDate.plusHours(1)) shouldBe Seq(
       VisitSummary(VisitCreate(first, first, first, earliestDate), VisitUpdate(first, 1, 0.3, laterDate)),
       VisitSummary(VisitCreate(second, second, second, laterDate), VisitUpdate(second, 3600, 0.1, earliestDate.plusHours(1))),
     )
