@@ -66,9 +66,8 @@ which adds up to ~1 billion messages per day, which could be enough for many use
 #### What is missing:
 
 - There are unhandled edge cases and code is not at it's cleanest in buffer implementation, emphasis was on having it working for basic cases;
-- Many things in main app object are hardcoded and not automatically tested at the moment;
 - There could be more generic stream acquisition, not necessary from file;
-- The output is just going to stdout, this should be piping into database;
+- The output goes to a file, it could be going into a storage instead;
 - Analytics persistence and querying are missing;
 
 #### Notable limitations and edge cases:
@@ -79,3 +78,12 @@ which adds up to ~1 billion messages per day, which could be enough for many use
 - Dates are not handled cleanly - some places use ZonedDateTime, others converts it to long back and forth;
 - Timeout is scattered across the code base, it could be concentrated in buffer instead;
 - Only success path is considered in many places;
+
+#### How to run:
+
+Call the main with these parameters:
+- relative input file path;
+- relative output file path;
+```
+sbt "runMain com.spikerlabs.streamingapp.App testdata/test-visit-messages.log testdata/test-visit-messages-result.log"
+```
