@@ -8,7 +8,7 @@ Feature: data processing
     Given there is a clean state
 
   Scenario: analysis of consecutive messages
-    Given there is a message stream from file "empty.data":
+    Given there is a message stream from file "simple.data":
       """
       {"messageType": "VisitCreate","visit": {"id": "6e066d95-7c11-4b3c-ab4f-406f82953c4e","userId": "20879fe7-a946-4ca1-b0f6-f8f10e753fba","documentId": "a8e5010b-aa0a-44c3-b8b2-6865ca0bac90","createdAt": "2015-01-01T10:24:33.000Z"}}
       {"messageType": "VisitCreate","visit": {"id": "3eaacf15-c9a3-4d39-a8c9-90f8d29b8bd1","userId": "20879fe7-a946-4ca1-b0f6-f8f10e753fba","documentId": "a8e5010b-aa0a-44c3-b8b2-6865ca0bac90","createdAt": "2015-01-01T10:34:33.000Z"}}
