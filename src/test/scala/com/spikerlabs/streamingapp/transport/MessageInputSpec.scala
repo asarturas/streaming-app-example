@@ -5,6 +5,7 @@ import java.time.ZonedDateTime
 import java.util.concurrent.Executors
 import java.util.UUID
 
+import cats.effect.{ContextShift, IO}
 import fs2.Stream
 import com.spikerlabs.streamingapp.domain.message.{DocumentVisitAnalytics, VisitCreate, VisitUpdate}
 import com.spikerlabs.streamingapp.domain.TimePeriod
@@ -12,17 +13,18 @@ import org.scalatest.{AppendedClues, FlatSpec, Matchers}
 
 import scala.concurrent.ExecutionContext
 
-class MessageStreamSpec extends FlatSpec with Matchers with AppendedClues {
+class MessageInputSpec extends FlatSpec with Matchers with AppendedClues {
 
   implicit val blockExecutionService = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
+  implicit val ioContextShift: ContextShift[IO] = IO.contextShift(blockExecutionService)
 
-  behavior of "message stream input"
+  behavior of "file input"
 
   it should "produce an empty stream for an empty file" in {
     val path = Paths.get("/tmp/streaming-app-example-message-stream-spec-empty.data")
     Files.write(path, "".getBytes())
 
-    val data = MessageStream.fromFile(path).compile.toVector.unsafeRunSync()
+    val data = MessageInput.fromFile(path).compile.toVector.unsafeRunSync()
 
     data shouldBe empty
   }
@@ -35,7 +37,7 @@ class MessageStreamSpec extends FlatSpec with Matchers with AppendedClues {
         |{"messageType": "VisitUpdate","visit": {"id": "6f200a5d-628c-4311-aec9-50b8cb481bf5","engagedTime": 25,"completion": 0.4,"updatedAt": "2015-01-01T11:33:44.999Z"}}
       """.stripMargin.getBytes())
 
-    val data = MessageStream.fromFile(path).compile.toVector.unsafeRunSync()
+    val data = MessageInput.fromFile(path).compile.toVector.unsafeRunSync()
 
     data shouldBe Vector(
       VisitCreate(

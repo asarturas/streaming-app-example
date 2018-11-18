@@ -1,13 +1,17 @@
 package steps
 
 import java.nio.file.{Files, Path, Paths}
+import java.util.concurrent.Executors
 
-import com.spikerlabs.streamingapp.transport.MessageStream
+import cats.effect.{ContextShift, IO}
+import com.spikerlabs.streamingapp.transport.{MessageInput, MessageStream}
 import com.spikerlabs.streamingapp.domain.Message
 import cucumber.api.scala.{EN, ScalaDsl}
 import cucumber.api.PendingException
 import fs2.Stream
 import org.scalatest.{AppendedClues, Matchers}
+
+import scala.concurrent.ExecutionContext
 
 class DataAcquisitionSteps extends ScalaDsl with EN with Matchers with AppendedClues {
   val filePathPrefix = "/tmp/streaming-app-example"
@@ -23,7 +27,7 @@ class DataAcquisitionSteps extends ScalaDsl with EN with Matchers with AppendedC
   }
 
   When("""^I create a message stream from source file "([^"]*)"$""") { fileName: String =>
-    sharedState = sharedState.copy(stream = MessageStream.fromFile(filePath(fileName)))
+    sharedState = sharedState.copy(stream = MessageInput.fromFile(filePath(fileName)))
   }
 
   Then("""^there should be an empty message stream$""") { () =>
@@ -48,7 +52,7 @@ class DataAcquisitionSteps extends ScalaDsl with EN with Matchers with AppendedC
 
   Given("""^there is a message stream from file "([^"]*)":$""") { (fileName: String, fileContents: String) =>
     Files.write(filePath(fileName), fileContents.getBytes)
-    sharedState = sharedState.copy(stream = MessageStream.fromFile(filePath(fileName)))
+    sharedState = sharedState.copy(stream = MessageInput.fromFile(filePath(fileName)))
   }
 
 }

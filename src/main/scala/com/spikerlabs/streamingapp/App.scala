@@ -5,7 +5,7 @@ import java.util.concurrent.Executors
 
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.implicits._
-import com.spikerlabs.streamingapp.transport.{MessageOutput, MessageStream}
+import com.spikerlabs.streamingapp.transport.{MessageInput, MessageOutput, MessageStream}
 import com.spikerlabs.streamingapp.analysis.VisitAnalytics
 import com.spikerlabs.streamingapp.domain.Message
 import fs2.{io, text}
@@ -27,7 +27,7 @@ object App extends IOApp {
     }
     blockingResource.use { blockingExecutionContext: ExecutionContextExecutorService =>
       implicit val ec = blockingExecutionContext
-      MessageStream.fromFile(Paths.get(input))
+      MessageInput.fromFile(Paths.get(input))
         .through(VisitAnalytics.aggregateVisits)
         .observe(MessageOutput.writeToFile(Paths.get(output)))
         .compile.drain

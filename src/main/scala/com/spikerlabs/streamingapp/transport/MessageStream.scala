@@ -13,12 +13,4 @@ object MessageStream {
 
   type MessageStream = Stream[IO, Message]
 
-  implicit val ioContextShift: ContextShift[IO] = IO.contextShift(scala.concurrent.ExecutionContext.Implicits.global)
-
-  def fromFile(filePath: Path)(implicit ec: ExecutionContextExecutorService): MessageStream =
-    io.file.readAll[IO](filePath, ec, 4096)
-      .through(text.utf8Decode)
-      .through(text.lines)
-      .through(stringStreamParser[IO])
-      .through(decoder[IO, Message])
 }
