@@ -1,11 +1,13 @@
-package com.spikerlabs.streamingapp.acquisition
+package com.spikerlabs.streamingapp.transport
 
 import java.nio.file.{Files, Paths}
 import java.time.ZonedDateTime
 import java.util.concurrent.Executors
 import java.util.UUID
 
-import com.spikerlabs.streamingapp.domain.message.{VisitCreate, VisitUpdate}
+import fs2.Stream
+import com.spikerlabs.streamingapp.domain.message.{DocumentVisitAnalytics, VisitCreate, VisitUpdate}
+import com.spikerlabs.streamingapp.domain.TimePeriod
 import org.scalatest.{AppendedClues, FlatSpec, Matchers}
 
 import scala.concurrent.ExecutionContext
@@ -14,7 +16,7 @@ class MessageStreamSpec extends FlatSpec with Matchers with AppendedClues {
 
   implicit val blockExecutionService = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
 
-  behavior of "message stream factory"
+  behavior of "message stream input"
 
   it should "produce an empty stream for an empty file" in {
     val path = Paths.get("/tmp/streaming-app-example-message-stream-spec-empty.data")

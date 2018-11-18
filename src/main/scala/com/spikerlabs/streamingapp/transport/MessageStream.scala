@@ -1,4 +1,4 @@
-package com.spikerlabs.streamingapp.acquisition
+package com.spikerlabs.streamingapp.transport
 
 import java.nio.file.Path
 

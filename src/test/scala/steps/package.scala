@@ -2,7 +2,7 @@ import java.util.concurrent.Executors
 
 import cats.effect.IO
 import com.spikerlabs.streamingapp.domain.Message
-import com.spikerlabs.streamingapp.acquisition.MessageStream.MessageStream
+import com.spikerlabs.streamingapp.transport.MessageStream.MessageStream
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 

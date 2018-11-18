@@ -2,7 +2,7 @@ package steps
 
 import java.nio.file.{Files, Path, Paths}
 
-import com.spikerlabs.streamingapp.acquisition.MessageStream
+import com.spikerlabs.streamingapp.transport.MessageStream
 import com.spikerlabs.streamingapp.domain.Message
 import cucumber.api.scala.{EN, ScalaDsl}
 import cucumber.api.PendingException

@@ -5,8 +5,9 @@ import java.util.concurrent.Executors
 
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.implicits._
-import com.spikerlabs.streamingapp.acquisition.MessageStream
+import com.spikerlabs.streamingapp.transport.{MessageOutput, MessageStream}
 import com.spikerlabs.streamingapp.analysis.VisitAnalytics
+import com.spikerlabs.streamingapp.domain.Message
 import fs2.{io, text}
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
@@ -25,14 +26,10 @@ object App extends IOApp {
       case _ => throw new Exception("please provide input file and output file paths as two parameters for an app")
     }
     blockingResource.use { blockingExecutionContext: ExecutionContextExecutorService =>
-      MessageStream.fromFile(Paths.get(input))(blockingExecutionContext)
+      implicit val ec = blockingExecutionContext
+      MessageStream.fromFile(Paths.get(input))
         .through(VisitAnalytics.aggregateVisits)
-        .observe(_
-          .intersperse("\n")
-          .map(_.toString)
-          .through(text.utf8Encode)
-          .through(io.file.writeAll(Paths.get(output), blockingExecutionContext))
-        )
+        .observe(MessageOutput.writeToFile(Paths.get(output)))
         .compile.drain
         .as(ExitCode.Success)
     }
