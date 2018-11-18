@@ -60,8 +60,8 @@ which adds up to ~1 billion messages per day, which could be enough for many use
 
 #### What is implemented:
 
-- Stream data from file: [features/data_acquisition.feature](src/test/resources/features/data_acquisition.feature);
 - Aggregate data into analytics: [features/data_processing.feature](src/test/resources/features/data_processing.feature).
+- Stream data IO: [features/data_transport.feature](src/test/resources/features/data_transport.feature);
 
 #### What is missing:
 
