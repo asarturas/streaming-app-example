@@ -1,10 +1,11 @@
 package steps
 
 import java.nio.file.{Files, Path, Paths}
+import java.util
 import java.util.concurrent.Executors
 
 import cats.effect.{ContextShift, IO}
-import com.spikerlabs.streamingapp.transport.{MessageInput, MessageStream}
+import com.spikerlabs.streamingapp.transport.{MessageInput, MessageOutput, MessageStream}
 import com.spikerlabs.streamingapp.domain.Message
 import cucumber.api.scala.{EN, ScalaDsl}
 import cucumber.api.PendingException
@@ -13,7 +14,7 @@ import org.scalatest.{AppendedClues, Matchers}
 
 import scala.concurrent.ExecutionContext
 
-class DataAcquisitionSteps extends ScalaDsl with EN with Matchers with AppendedClues {
+class DataTransportSteps extends ScalaDsl with EN with Matchers with AppendedClues {
   val filePathPrefix = "/tmp/streaming-app-example"
 
   def filePath(fileName: String): Path = Paths.get(s"$filePathPrefix-$fileName")
@@ -26,8 +27,17 @@ class DataAcquisitionSteps extends ScalaDsl with EN with Matchers with AppendedC
     Files.write(filePath(fileName), fileContents.getBytes)
   }
 
+  Given("""^there is a message stream from file "([^"]*)":$""") { (fileName: String, fileContents: String) =>
+    Files.write(filePath(fileName), fileContents.getBytes)
+    sharedState = sharedState.copy(stream = MessageInput.fromFile(filePath(fileName)))
+  }
+
   When("""^I create a message stream from source file "([^"]*)"$""") { fileName: String =>
     sharedState = sharedState.copy(stream = MessageInput.fromFile(filePath(fileName)))
+  }
+
+  When("""^store results in file "([^"]*)"$""") { fileName: String =>
+    sharedState.stream.observe(MessageOutput.writeToFile(filePath(fileName))).compile.toVector.unsafeRunSync()
   }
 
   Then("""^there should be an empty message stream$""") { () =>
@@ -50,9 +60,10 @@ class DataAcquisitionSteps extends ScalaDsl with EN with Matchers with AppendedC
     }
   }
 
-  Given("""^there is a message stream from file "([^"]*)":$""") { (fileName: String, fileContents: String) =>
-    Files.write(filePath(fileName), fileContents.getBytes)
-    sharedState = sharedState.copy(stream = MessageInput.fromFile(filePath(fileName)))
+  Then("""^the file "([^"]*)" should be:$""") { (fileName: String, expectedFileContent: String) =>
+    import scala.collection.JavaConverters._
+    val actualFileContent = Files.readAllLines(filePath(fileName)).asScala.mkString("\n")
+    actualFileContent shouldBe expectedFileContent
   }
 
 }
