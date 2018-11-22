@@ -23,4 +23,9 @@ object Dependencies {
     "io.cucumber" % "cucumber-jvm",
     "io.cucumber" % "cucumber-junit",
   ).map(_ % "2.0.1" % Test)
+  lazy val javaCompatibility = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0" % Test
+  lazy val dockerTest = Seq(
+    "com.whisk" %% "docker-testkit-scalatest",
+    "com.whisk" %% "docker-testkit-impl-docker-java",
+  ).map(_ % "0.9.8" % Test)
 }

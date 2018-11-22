@@ -87,3 +87,13 @@ Call the main with these parameters:
 ```
 sbt "runMain com.spikerlabs.streamingapp.App testdata/test-visit-messages.log testdata/test-visit-messages-result.log"
 ```
+
+### How to run in docker:
+
+Build and mount data to container, passing input and output files as parameters, like:
+```
+sbt "docker:stage"
+sbt "docker:publishLocal"
+docker run --rm -v "$PWD/testdata:/testdata" spikerlabs/streaming-app-example -- /testdata/test-visit-messages.log /testdata/test-visit-messages-result.log
+```
+Note: example above assumes you have your data in testdata directory on the project
