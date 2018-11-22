@@ -62,6 +62,7 @@ which adds up to ~1 billion messages per day, which could be enough for many use
 
 - Aggregate data into analytics: [features/data_processing.feature](src/test/resources/features/data_processing.feature).
 - Stream data IO: [features/data_transport.feature](src/test/resources/features/data_transport.feature);
+- Packaging and E2E tests: [features/end2end.feature](src/test/resources/features/end2end.feature);
 
 #### What is missing:
 
@@ -87,3 +88,13 @@ Call the main with these parameters:
 ```
 sbt "runMain com.spikerlabs.streamingapp.App testdata/test-visit-messages.log testdata/test-visit-messages-result.log"
 ```
+
+### How to run in docker:
+
+Build and mount data to container, passing input and output files as parameters, like:
+```
+sbt "docker:stage"
+sbt "docker:publishLocal"
+docker run --rm -v "$PWD/testdata:/testdata" spikerlabs/streaming-app-example -- /testdata/test-visit-messages.log /testdata/test-visit-messages-result.log
+```
+Note: example above assumes you have your data in testdata directory on the project
