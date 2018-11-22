@@ -62,6 +62,7 @@ which adds up to ~1 billion messages per day, which could be enough for many use
 
 - Aggregate data into analytics: [features/data_processing.feature](src/test/resources/features/data_processing.feature).
 - Stream data IO: [features/data_transport.feature](src/test/resources/features/data_transport.feature);
+- Packaging and E2E tests: [features/end2end.feature](src/test/resources/features/end2end.feature);
 
 #### What is missing:
 
